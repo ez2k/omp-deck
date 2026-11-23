@@ -1,0 +1,4 @@
+node_modules/
+data/
+# Built from the installed omp version by update.ts.
+collab-web/

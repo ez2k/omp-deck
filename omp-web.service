@@ -1,0 +1,21 @@
+[Unit]
+Description=omp-web (omp collab dashboard + relay)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/omp-web
+EnvironmentFile=/root/omp-web/data/env
+Environment=HOME=/root
+Environment=PATH=/root/.local/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/root/.bun/bin/bun run server.ts
+Restart=always
+RestartSec=3
+# Sessions started from the dashboard live in tmux; if this service ends up starting the tmux
+# server, restarting omp-web must not kill it (and every omp session) with the service cgroup.
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
