@@ -701,7 +701,7 @@ dialog#nodes-dialog { width: min(620px, 96vw); }
 				<input name="httpsPort" type="number" min="1" max="65535" inputmode="numeric">
 			</label>
 			<label class="full">Cloudflare API 토큰
-				<input name="cfToken" type="password" autocomplete="off">
+				<input name="cfToken" type="password" autocomplete="new-password">
 				<small class="muted">Cloudflare → My Profile → API Tokens → "Edit zone DNS" 템플릿으로 만든 토큰. 비워 두면 저장된 토큰을 유지합니다.</small>
 			</label>
 			<label><span>이메일 <span class="muted">(선택)</span></span>
@@ -731,7 +731,7 @@ dialog#nodes-dialog { width: min(620px, 96vw); }
 	<div class="dlg-body bot-body">
 		<section class="bot-settings" id="bot-settings" hidden>
 			<label>텔레그램 봇 토큰
-				<div class="cwd-row"><input id="bot-token" type="password" placeholder="123456789:AA..." autocomplete="off"><button type="button" id="bot-token-save">저장</button></div>
+				<div class="cwd-row"><input id="bot-token" type="password" placeholder="123456789:AA..." autocomplete="new-password"><button type="button" id="bot-token-save">저장</button></div>
 				<small class="muted">텔레그램에서 @BotFather에게 /newbot 을 보내 봇을 만들면 '숫자:문자' 형식의 토큰을 줍니다.</small>
 			</label>
 			<div class="bot-tg" id="bot-tg"></div>
@@ -1963,7 +1963,11 @@ $("open-resume").addEventListener("click", () => {
 	resumeDialog.showModal();
 	loadRecent();
 });
-$("resume-filter").addEventListener("input", renderRecent);
+$("resume-filter").addEventListener("input", ev => {
+	// A password manager may put the saved login ID here; only typed text filters.
+	if (ev.target.matches(":-webkit-autofill")) ev.target.value = "";
+	renderRecent();
+});
 
 // ---------- notifications: history list + Web Push ----------
 
