@@ -332,6 +332,8 @@ dialog#planrev-dialog { width: min(1000px, 96vw); height: 92dvh; }
 .plan-note { color: var(--muted); padding: 1.5rem 0; text-align: center; }
 
 #resume-filter { flex: 1 1 14rem; width: auto; }
+/* Search boxes sit in their own form only so browsers never treat them as a login ID field; layout ignores it. */
+form[role="search"] { display: contents; }
 #resume-error { color: var(--err); margin: 0 0 .75rem; }
 #resume-error:empty { display: none; }
 .resume-list { display: flex; flex-direction: column; gap: .5rem; }
@@ -672,7 +674,7 @@ dialog#nodes-dialog { width: min(620px, 96vw); }
 <dialog id="resume-dialog" class="modal">
 	<div class="dlg-head">
 		<h2>세션 재개</h2>
-		<input type="search" id="resume-filter" placeholder="제목·디렉터리 검색" autocomplete="off">
+		<form role="search" onsubmit="return false"><input type="search" id="resume-filter" placeholder="제목·디렉터리 검색" autocomplete="off"></form>
 		<button type="button" class="ghost icon" data-close aria-label="닫기">✕</button>
 	</div>
 	<div class="dlg-body">
@@ -853,7 +855,7 @@ dialog#nodes-dialog { width: min(620px, 96vw); }
 	</div>
 	<div class="doc-layout" id="doc-layout">
 		<aside class="doc-side">
-			<input type="search" id="doc-filter" placeholder="파일 검색" autocomplete="off">
+			<form role="search" onsubmit="return false"><input type="search" id="doc-filter" placeholder="파일 검색" autocomplete="off"></form>
 			<div class="doc-filters" id="doc-filters">
 				<button type="button" data-filter="all" class="on">전체</button>
 				<button type="button" data-filter="recent">최근 변경</button>
