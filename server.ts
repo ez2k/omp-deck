@@ -642,7 +642,8 @@ function backgroundWork(h: Host): number {
  * after the turn ended would be cut off by a restart); `busy: null` (unknown) never counts.
  */
 function isIdle(h: Host): boolean {
-	return h.busy === false && !h.inputRequired && backgroundWork(h) === 0;
+	// A plan waiting for approval lives only in that process: a restart would drop it.
+	return h.busy === false && !h.inputRequired && backgroundWork(h) === 0 && !openReviewFor(h.sessionId);
 }
 
 // ---------- session control: model / thinking changes carried out by omp-extension/activity.ts ----------
@@ -973,6 +974,8 @@ interface PlanReview {
 	options: { id: string; label: string; disabled: boolean }[];
 	tiers: { role: string; provider: string; model: string; thinkingLevel?: string }[];
 	createdAt: number;
+	/** The omp process showing the review; it is gone (with the review) once that process exits. */
+	pid: number | null;
 	/** Answer picked on the dashboard, waiting for the extension to collect it. */
 	answer: PlanAnswer | null;
 	answerWaiters: Set<(answer: PlanAnswer | null) => void>;
@@ -1005,8 +1008,25 @@ function closeReview(reviewId: string): void {
 }
 
 function openReviewFor(sessionId: string): PlanReview | undefined {
-	for (const r of planReviews.values()) if (r.sessionId === sessionId) return r;
+	for (const r of [...planReviews.values()]) {
+		if (r.sessionId !== sessionId) continue;
+		if (r.pid !== null && !processAlive(r.pid)) {
+			// Restarted (e.g. for an update) without a resolved event: nothing will collect an answer.
+			closeReview(r.reviewId);
+			continue;
+		}
+		return r;
+	}
 	return undefined;
+}
+
+function processAlive(pid: number): boolean {
+	try {
+		process.kill(pid, 0);
+		return true;
+	} catch {
+		return false;
+	}
 }
 
 // ---------- control bot: dashboard actions for omp-extension/control-tools.ts ----------
@@ -1275,6 +1295,7 @@ async function handleInternal(req: Request, server: Server, pathname: string): P
 				options: Array.isArray(b.options) ? (b.options as PlanReview["options"]) : [],
 				tiers: Array.isArray(b.tiers) ? (b.tiers as PlanReview["tiers"]) : [],
 				createdAt: Date.now(),
+				pid: typeof b.pid === "number" && Number.isInteger(b.pid) && b.pid > 0 ? b.pid : null,
 				answer: null,
 				answerWaiters: new Set(),
 				resultWaiter: null,
